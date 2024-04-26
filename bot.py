@@ -4,7 +4,10 @@ import asyncio
 import requests
 import telebot
 from dotenv import load_dotenv
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
 
+from models import Base, CoinValues
 from constants import ROUNDER_VALUE
 
 load_dotenv()
@@ -15,6 +18,12 @@ COIN_API_KEY = os.getenv('COIN_MARKET_API_KEY')
 INTERVAL = os.getenv('INTERVAL_TIME')
 
 bot = telebot.TeleBot(BOT_API_KEY)
+
+engine = create_engine('sqlite:///coin_values.db')
+Base.metadata.create_all(engine)
+
+Session = sessionmaker(bind=engine)
+session = Session()
 
 
 def send_message(message):
@@ -55,21 +64,29 @@ async def tracking_values(coin, min_price, max_price):
         await asyncio.sleep(int(INTERVAL))
 
 
+# def is_valid_coin(coin):
+#     ''' Метод проверки существования криптовалюты. '''
+#     url = 'https://api.coinmarketcap.com/v1/cryptocurrency/listings/latest'
+#     response = requests.get(url)
+#     data = response.json()
+#     available_coins = [entry['symbol'].upper() for entry in data]
+#     return coin.upper() in available_coins
+
+
 async def main():
     ''' Основной метод. '''
-    coin_values = {
-        'BTC': {'min': 63800, 'max': 64000},
-        'ETH': {'min': 3200, 'max': 3500},
-        'MKR': {'min': 2900, 'max': 3000},
-    }
+    coin_values = session.query(CoinValues).all()
 
     tasks = []
-    for coin, values in coin_values.items():
-        min_price = values['min']
-        max_price = values['max']
-        task = asyncio.create_task(tracking_values(coin, min_price, max_price))
+    for coin_value in coin_values:
+        task = asyncio.create_task(
+            tracking_values(
+                coin_value.coin_name,
+                coin_value.min_price,
+                coin_value.max_price,
+            )
+        )
         tasks.append(task)
-
     await asyncio.gather(*tasks)
 
 if __name__ == '__main__':
