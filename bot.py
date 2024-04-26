@@ -1,4 +1,5 @@
 import os
+import time
 
 import asyncio
 import requests
@@ -16,6 +17,11 @@ BOT_API_KEY = os.getenv('YOUR_API_KEY')
 CHAT_ID = os.getenv('YOUR_CHAT_ID')
 COIN_API_KEY = os.getenv('COIN_MARKET_API_KEY')
 INTERVAL = os.getenv('INTERVAL_TIME')
+DESCRIPTION = (
+    'Этот бот 🤖 отслеживает значения пороговых значений 🪙Криптовалюта/USD💲,'
+    ' min 👇👆 max , при достижении или превышении, которых приходит сообщение'
+    ' 📩 в чат. Для установки ⚙️ новых значений используйте команду /update'
+)
 
 bot = telebot.TeleBot(BOT_API_KEY)
 
@@ -71,6 +77,9 @@ async def tracking_values(coin, min_price, max_price):
 #     data = response.json()
 #     available_coins = [entry['symbol'].upper() for entry in data]
 #     return coin.upper() in available_coins
+
+send_message(DESCRIPTION)
+time.sleep(int(INTERVAL))
 
 
 async def main():
