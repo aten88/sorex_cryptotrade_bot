@@ -1,0 +1,1 @@
+# sorex_kryptotrade_bot
