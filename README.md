@@ -85,7 +85,11 @@ sorex_сryptotrade_bot это телеграмм-бот отслеживающи
   ```
 - Запустить скрипт:
   ```
-  python bot.py
+  python3 bot.py
+  ```
+  или
+  ```
+  nohup python3 bot.py &
   ```
 
 ### Автор: Алексей Тен.
