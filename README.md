@@ -62,18 +62,18 @@ sorex_kryptotrade_bot это телеграмм-бот отслеживающи�
   ```
 - Установить и активировать виртуальное окружение:
   ```
-  python -m venv venv
+  sudo apt install python3-pip python3-venv -y
   ```
   ```
-  source/bin/Scripts/activate
+  source venv/bin/activate
   ```
 - Обновить пакетный менеджер pip:
   ```
-  python.exe -m pip install --upgrade pip
+  pip install --upgrade pip
   ```
 - Установить зависимости из файла requirements.txt:
   ```
-  pip install -r requirements.txt
+  pip install -r requirements.txt 
   ```
 - Запустить скрипт:
   ```
