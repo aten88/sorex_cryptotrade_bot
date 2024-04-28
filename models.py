@@ -5,7 +5,7 @@ Base = declarative_base()
 
 
 class CoinValues(Base):
-    """" Модель пороговых значений. """
+    ''' Модель пороговых значений. '''
     __tablename__ = 'coin_values'
 
     id = Column(Integer, primary_key=True)
