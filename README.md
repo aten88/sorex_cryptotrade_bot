@@ -35,7 +35,6 @@ sorex_сryptotrade_bot это телеграмм-бот отслеживающи
   YOUR_API_KEY=API-ключ вашего бота в ТГ.
   COIN_MARKET_API_KEY=API ключ платформы CoinMarketCap
   URL_MARKET = https://pro-api.coinmarketcap.com/v1/cryptocurrency/quotes/latest
-  INTERVAL_TIME = Количество секунд, интервал частоты сообщений в чате
 - Запустить скрипт:
   ```
   python bot.py
@@ -86,7 +85,6 @@ sorex_сryptotrade_bot это телеграмм-бот отслеживающи
   YOUR_API_KEY=API-ключ вашего бота в ТГ.
   COIN_MARKET_API_KEY=API ключ платформы CoinMarketCap
   URL_MARKET = https://pro-api.coinmarketcap.com/v1/cryptocurrency/quotes/latest
-  INTERVAL_TIME = Количество секунд, интервал частоты сообщений в чате
   ```
 - Запустить скрипт:
   ```
