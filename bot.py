@@ -1,9 +1,7 @@
 import os
 
-import asyncio
 import requests
 import telebot
-import threading
 from dotenv import load_dotenv
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
@@ -18,11 +16,13 @@ COIN_API_KEY = os.getenv('COIN_MARKET_API_KEY')
 INTERVAL = os.getenv('INTERVAL_TIME')
 DESCRIPTION = (
     'Этот бот 🤖 отслеживает значения пороговых сумм 🪙Криптовалюта/USD💲,'
-    ' min 👇👆 max , при достижении или превышении, которых приходит сообщение'
-    ' 📩 в чат. Для установки ⚙️ новых значений используйте команду /update.'
+    ' min 👇👆 max , при достижении или превышении, '
+    ' которых приходит сообщение 📩 в чат. '
     ' Чтобы просмотреть значения криптовалютных пар'
     ' и их min/max значений используйте команду /show'
-    ' Для перезапуска бота повторно введите команду /start'
+    ' Для установки ⚙️ новых значений используйте команду /update.'
+    ' Для получения сводки котировок online используйте команду /tracking'
+    ' Для повторного запуска бота введите команду /start'
 )
 
 bot = telebot.TeleBot(BOT_API_KEY)
@@ -50,9 +50,14 @@ def get_price(coin):
     return round(data['data'][coin]['quote']['USD']['price'], ROUNDER_VALUE)
 
 
-async def tracking_values(user_id, coin, min_price, max_price):
+def tracking_values(user_id):
     ''' Метод отслеживания изменений котировок. '''
-    while True:
+    coin_values = session.query(CoinValues).filter_by(user_id=user_id).all()
+    any_coin_in_range = False
+    for coin_value in coin_values:
+        coin = coin_value.coin_name
+        min_price = coin_value.min_price
+        max_price = coin_value.max_price
         price = get_price(coin)
         if price <= min_price:
             bot.send_message(
@@ -60,42 +65,26 @@ async def tracking_values(user_id, coin, min_price, max_price):
                 text=f'Цена {coin}={price}$, '
                 f'достигла или меньше порога: ${min_price}'
             )
+            any_coin_in_range = True
         elif price >= max_price:
             bot.send_message(
                 chat_id=user_id,
                 text=f'Цена {coin}={price}$, '
                 f'достигла или больше максимального порога: ${max_price}'
             )
-        await asyncio.sleep(int(INTERVAL))
+            any_coin_in_range = True
 
-
-def polling_thread():
-    ''' Метод отслеживания сообщений в чате бота. '''
-    bot.polling()
-
-
-async def main(user_id):
-    ''' Основной метод работы скрипта. '''
-    coin_values = session.query(CoinValues).filter_by(user_id=user_id).all()
-    tasks = []
-    for coin_value in coin_values:
-        task = asyncio.create_task(
-            tracking_values(
-                coin_value.user_id,
-                coin_value.coin_name,
-                coin_value.min_price,
-                coin_value.max_price,
-            )
+    if not any_coin_in_range:
+        bot.send_message(
+            chat_id=user_id,
+            text='Нет котировок соответствующих выбранным критериям.'
         )
-        tasks.append(task)
-    await asyncio.gather(*tasks)
 
 
 @bot.message_handler(commands=['start'])
 def start_message(message):
     ''' Обработчик команды /start'''
     bot.send_message(chat_id=message.chat.id, text=DESCRIPTION)
-    asyncio.run(main(message.chat.id))
 
 
 @bot.message_handler(commands=['update'])
@@ -110,7 +99,7 @@ def update_message(message):
 
 @bot.message_handler(commands=['show'])
 def show_message(message):
-    ''' Обработчик команды /show'''
+    ''' Обработчик команды /show '''
     user_id = message.chat.id
     coin_values = session.query(CoinValues).filter_by(
         user_id=user_id
@@ -125,6 +114,13 @@ def show_message(message):
     else:
         answer = "Нет сохраненных значений криптовалют."
     bot.send_message(chat_id=message.chat.id, text=answer)
+
+
+@bot.message_handler(commands=['tracking'])
+def tracking_message(message):
+    ''' Обработчик команды /tracking'''
+    user_id = message.chat.id
+    tracking_values(user_id)
 
 
 @bot.message_handler(func=lambda message: True)
@@ -172,6 +168,4 @@ def handle_message(message):
 
 
 if __name__ == '__main__':
-    polling_thread = threading.Thread(target=polling_thread)
-    polling_thread.start()
-    polling_thread.join()
+    bot.polling()
